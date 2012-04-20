@@ -16,19 +16,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class OpenGLRenderer implements Renderer {
 
-    private Mesh root;
+    //private Mesh root;
     private  WorldModel model;
 
     public OpenGLRenderer(WorldModel model) {
-        // Initialize our cube.
-        //Group group = new Group();
-        //cube = new Cube(1, 1, 1);
-        //cube.rx = 45;
-        //cube.ry = 45;
-        //group.add(cube);
-        //root = group;
         this.model = model;
-        root = model.getCurrentScene();
+        //root = model.getCurrentScene();
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
@@ -54,14 +47,15 @@ public class OpenGLRenderer implements Renderer {
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
                 GL10.GL_DEPTH_BUFFER_BIT);
 
-        root = model.getCurrentScene();
+        model.updateScene();
+        //root = model.getCurrentScene();
         // Replace the current matrix with the identity matrix
         gl.glLoadIdentity();
         // Translates 4 units into the screen.
-        gl.glTranslatef(0, 0, -4);
+        gl.glTranslatef(0, 0, -5);
         // Draw our scene.
         gl.glRotatef(45f, 1, 0, 0);
-        root.draw(gl);
+        model.getCurrentScene().draw(gl);
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
