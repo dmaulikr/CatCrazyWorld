@@ -53,7 +53,8 @@ public class WorldModel {
         Cube brokenRock = new Cube(1,1,1);
 
         Cube cat = new Cube(1,1,1);
-
+        Fish fish = new Fish(1,1,1);
+                
         cat.setColor(1f, 1f, 1f, 1f);
         cat.x = -2f;
         cat.y = 2f;
@@ -98,7 +99,11 @@ public class WorldModel {
         brokenRock.rz = 0f;
         scene.add(brokenRock);
         Point rockCoor = new Point(2, 0);
-        fields.add(rockCoor);       
+        fields.add(rockCoor);
+        
+        fish.x = 0f;
+        fish.y = 1f;
+        scene.add(fish);
     }
 
     public Group getCurrentScene() {

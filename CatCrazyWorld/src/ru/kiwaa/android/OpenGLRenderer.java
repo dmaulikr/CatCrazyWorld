@@ -19,6 +19,8 @@ public class OpenGLRenderer implements Renderer {
     //private Mesh root;
     private  WorldModel model;
 
+    private float angle = 0f;
+
     public OpenGLRenderer(WorldModel model) {
         this.model = model;
         //root = model.getCurrentScene();
@@ -48,13 +50,12 @@ public class OpenGLRenderer implements Renderer {
                 GL10.GL_DEPTH_BUFFER_BIT);
 
         model.updateScene();
-        //root = model.getCurrentScene();
         // Replace the current matrix with the identity matrix
         gl.glLoadIdentity();
         // Translates 4 units into the screen.
-        gl.glTranslatef(0, 0, -5);
+        gl.glTranslatef(0, 0, -4);
         // Draw our scene.
-        gl.glRotatef(45f, 1, 0, 0);
+        gl.glRotatef(angle++, 0, 1f, 0);
         model.getCurrentScene().draw(gl);
     }
 

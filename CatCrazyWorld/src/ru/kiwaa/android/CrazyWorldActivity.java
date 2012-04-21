@@ -50,7 +50,7 @@ public class CrazyWorldActivity extends Activity implements SensorEventListener 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            boolean b = true;
+            float rx = sensorEvent.values[0];
         }
     }
 
