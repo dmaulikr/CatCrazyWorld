@@ -1,5 +1,8 @@
 package ru.kiwaa.android;
 
+import android.graphics.Bitmap;
+import android.opengl.GLUtils;
+
 import javax.microedition.khronos.opengles.GL10;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -29,6 +32,17 @@ public class Mesh {
     // Smooth Colors
     private FloatBuffer colorBuffer = null;
 
+    // Our UV texture buffer.
+    private FloatBuffer mTextureBuffer;
+
+    // Our texture id.
+    private int mTextureId = -1;
+
+    // The bitmap we want to load as a texture.
+    private Bitmap mBitmap;
+    // Indicates if we need to load the texture.
+    private boolean mShouldLoadTexture = false;
+
     // Translate params.
     public float x = 0;
     public float y = 0;
@@ -38,41 +52,75 @@ public class Mesh {
     public float rx = 0;
     public float ry = 0;
     public float rz = 0;
+    
+    //model params
+    public boolean shouldDraw = true;
+    public boolean isFixed = false;
 
     public void draw(GL10 gl) {
-        // Counter-clockwise winding.
-        gl.glFrontFace(GL10.GL_CCW);
-        // Enable face culling.
-        gl.glEnable(GL10.GL_CULL_FACE);
-        // What faces to remove with the face culling.
-        gl.glCullFace(GL10.GL_BACK);
-        // Enabled the vertices buffer for writing and to be used during
-        // rendering.
-        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-        // Specifies the location and data format of an array of vertex
-        // coordinates to use when rendering.
-        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, verticesBuffer);
-        // Set flat color
-        gl.glColor4f(rgba[0], rgba[1], rgba[2], rgba[3]);
-        // Smooth color
-        if ( colorBuffer != null ) {
-            // Enable the color array buffer to be used during rendering.
-            gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
-            // Point out the where the color buffer is.
-            gl.glColorPointer(4, GL10.GL_FLOAT, 0, colorBuffer);
+        if (shouldDraw) {
+            // Counter-clockwise winding.
+            gl.glFrontFace(GL10.GL_CCW);
+            // Enable face culling.
+            gl.glEnable(GL10.GL_CULL_FACE);
+            // What faces to remove with the face culling.
+            gl.glCullFace(GL10.GL_BACK);
+            // Enabled the vertices buffer for writing and to be used during
+            // rendering.
+            gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+            // Specifies the location and data format of an array of vertex
+            // coordinates to use when rendering.
+            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, verticesBuffer);
+            // Set flat color
+            gl.glColor4f(rgba[0], rgba[1], rgba[2], rgba[3]);
+            // Smooth color
+            if (colorBuffer != null) {
+                // Enable the color array buffer to be used during rendering.
+                gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
+                gl.glColorPointer(4, GL10.GL_FLOAT, 0, colorBuffer);
+            }
+
+            if (mShouldLoadTexture) {
+                loadGLTexture(gl);
+                mShouldLoadTexture = false;
+            }
+            if (mTextureId != -1 && mTextureBuffer != null) {
+                gl.glEnable(GL10.GL_TEXTURE_2D);
+                // Enable the texture state
+                gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+
+                // Point to our buffers
+                gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBuffer);
+                gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureId);
+            }
+
+            gl.glTranslatef(x, y, z);
+            gl.glRotatef(rx, 1, 0, 0);
+            gl.glRotatef(ry, 0, 1, 0);
+            gl.glRotatef(rz, 0, 0, 1);
+
+            gl.glDrawElements(GL10.GL_TRIANGLES, numOfIndices,
+                    GL10.GL_UNSIGNED_SHORT, indicesBuffer);
+
+            if (colorBuffer != null) {
+                // Enable the color array buffer to be used during rendering.
+                gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+            }
+
+            if (mTextureId != -1 && mTextureBuffer != null) {
+                gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+            }
+
+            // Disable the vertices buffer.
+            gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+            // Disable face culling.
+            gl.glDisable(GL10.GL_CULL_FACE);
         }
+    }
 
-        gl.glTranslatef(x, y, z);
-        gl.glRotatef(rx, 1, 0, 0);
-        gl.glRotatef(ry, 0, 1, 0);
-        gl.glRotatef(rz, 0, 0, 1);
-
-        gl.glDrawElements(GL10.GL_TRIANGLES, numOfIndices,
-                GL10.GL_UNSIGNED_SHORT, indicesBuffer);
-        // Disable the vertices buffer.
-        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-        // Disable face culling.
-        gl.glDisable(GL10.GL_CULL_FACE);
+    public void loadBitmap(Bitmap bitmap) {
+        this.mBitmap = bitmap;
+        mShouldLoadTexture = true;
     }
 
     protected void setVertices(float[] vertices) {
@@ -111,5 +159,42 @@ public class Mesh {
         colorBuffer = cbb.asFloatBuffer();
         colorBuffer.put(colors);
         colorBuffer.position(0);
+    }
+
+    protected void setTextureCoordinates(float[] textureCoords) {
+        // float is 4 bytes, therefore we multiply the number if
+        // vertices with 4.
+        ByteBuffer byteBuf = ByteBuffer.allocateDirect(
+                textureCoords.length * 4);
+        byteBuf.order(ByteOrder.nativeOrder());
+        mTextureBuffer = byteBuf.asFloatBuffer();
+        mTextureBuffer.put(textureCoords);
+        mTextureBuffer.position(0);
+    }
+
+    private void loadGLTexture(GL10 gl) {
+        // Generate one texture pointer...
+        int[] textures = new int[1];
+        gl.glGenTextures(1, textures, 0);
+        mTextureId = textures[0];
+
+        // ...and bind it to our array
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureId);
+
+        // Create Nearest Filtered Texture
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+                GL10.GL_NEAREST);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
+                GL10.GL_NEAREST);
+
+        // Different possible texture parameters, e.g. GL10.GL_CLAMP_TO_EDGE
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+                GL10.GL_REPEAT);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+                GL10.GL_REPEAT);
+
+        // Use the Android GLUtils to specify a two-dimensional texture image
+        // from our bitmap
+        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, mBitmap, 0);
     }
 }

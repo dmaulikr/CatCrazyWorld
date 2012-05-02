@@ -20,6 +20,8 @@ public class OpenGLRenderer implements Renderer {
     private  WorldModel model;
 
     private float angle = 0f;
+    int width;
+    int height;
 
     public OpenGLRenderer(WorldModel model) {
         this.model = model;
@@ -29,7 +31,6 @@ public class OpenGLRenderer implements Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         // Set the background color to black ( rgba ).
         gl.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);  // OpenGL docs.
-
 
         // Enable Smooth Shading, default not really needed.
         gl.glShadeModel(GL10.GL_SMOOTH);// OpenGL docs.
@@ -49,17 +50,26 @@ public class OpenGLRenderer implements Renderer {
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
                 GL10.GL_DEPTH_BUFFER_BIT);
 
+        
         model.updateScene();
+        GLU.gluPerspective(gl, 45.0f,
+                (float) width / (float) height,
+                0.1f, 100.0f);
         // Replace the current matrix with the identity matrix
         gl.glLoadIdentity();
         // Translates 4 units into the screen.
-        gl.glTranslatef(0, 0, -4);
+        gl.glTranslatef(0, 0, -10);
         // Draw our scene.
-        gl.glRotatef(angle++, 0, 1f, 0);
+        gl.glRotatef(model.rx, 1f, 0f, 0f);
+        gl.glRotatef(model.ry, 0f, 1f, 0f);
+        gl.glRotatef(model.rz, 0f, 0f, 1f);
+        //angle += 5;
         model.getCurrentScene().draw(gl);
     }
 
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        this.width = width;
+        this.height = height;
         // Sets the current view port to the new size.
         gl.glViewport(0, 0, width, height);// OpenGL docs.
         // Select the projection matrix

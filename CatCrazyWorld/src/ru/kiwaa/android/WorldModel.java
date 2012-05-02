@@ -1,5 +1,7 @@
 package ru.kiwaa.android;
 
+import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.List;
 public class WorldModel {
     //scene
     Group scene;
+    Context context;
 
     //Used to figure out elapsed time between frames
     private long mLastTime;
@@ -22,13 +25,32 @@ public class WorldModel {
     private int frameSamplesCollected = 0;
     private int frameSampleTime = 0;
     private int fps = 0;
-    
+
     List<Point> fields = new ArrayList<Point>();
+
+    //for camera
+    public float rx = 0;
+    public float ry = 0;
+    public float rz = 0;
     
     //for players cube
     private float diffX = 0;
     private float diffY = 0;
     private float diffZ = 0;
+
+    Explosion exp;
+
+    public void setCameraXAngle(float angle) {
+        rx = angle;
+    }
+
+    public void setCameraYAngle(float angle) {
+        ry = angle;
+    }
+
+    public void setCameraZAngle(float angle) {
+        rz = angle;
+    }
 
     public void setXAngle(float angle) {
         diffX = angle;
@@ -43,7 +65,9 @@ public class WorldModel {
     }
 
     //create model
-    public void createModel() {
+    public void createModel(Context context) {
+        this.context = context;
+
         scene = new Group();
         
         Cube grass = new Cube(1,1,1);
@@ -61,7 +85,8 @@ public class WorldModel {
         cat.rz = 0f;
         scene.add(cat);
         
-        grass.setColor(0f, 0.3f,0, 1f);
+        grass.setColor(1f, 1f, 1f, 1f);
+        grass.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.grass3));
         grass.x = -2f;
         grass.y = 0f;
         grass.rz = 0f;
@@ -69,15 +94,17 @@ public class WorldModel {
         Point grassCoor = new Point(-2, 0);
         fields.add(grassCoor);
 
-        sand.setColor(0f, 0.7f, 0.7f, 1f);
+        //sand.setColor(0f, 0.7f, 0.7f, 1f);
+        sand.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.sand));
         sand.x = -1f;
         sand.y = 0f;
         sand.rz = 0f;
         scene.add(sand);
         Point sandCoor = new Point(-1, 0);
         fields.add(sandCoor);
-        
-        ice.setColor(0, 0f, 0.9f, 0.4f);
+
+        ice.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.ice));
+        //ice.setColor(0, 0f, 0.9f, 0.4f);
         ice.x = 0f;
         ice.y = 0f;
         ice.rz = 0f;
@@ -85,7 +112,8 @@ public class WorldModel {
         Point iceCoor = new Point(0, 0);
         fields.add(iceCoor);
 
-        cloud.setColor(0.9f, 0.9f, 0.99f, 0.3f);
+        cloud.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.cloud));
+        //cloud.setColor(0.9f, 0.9f, 0.99f, 0.3f);
         cloud.x = 1f;
         cloud.y = 0f;
         cloud.rz = 0f;
@@ -93,17 +121,23 @@ public class WorldModel {
         Point cloudCoor = new Point(1, 0);
         fields.add(cloudCoor);
 
-        brokenRock.setColor(0.2f, 0.2f, 0.2f, 1f);
+        brokenRock.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
+        //brokenRock.setColor(0.2f, 0.2f, 0.2f, 1f);
         brokenRock.x = 2f;
         brokenRock.y = 0f;
         brokenRock.rz = 0f;
         scene.add(brokenRock);
         Point rockCoor = new Point(2, 0);
         fields.add(rockCoor);
-        
+
+        fish.setColor(1f, 1f, 1f, 1f);
         fish.x = 0f;
         fish.y = 1f;
         scene.add(fish);
+
+        exp = new Explosion(100, 0, 0, BitmapFactory.decodeResource(context.getResources(), R.drawable.cloud8));
+        //exp.setTexture();
+        scene.add(exp);
     }
 
     public Group getCurrentScene() {
@@ -126,12 +160,16 @@ public class WorldModel {
             //fall
             if (cube.y < -1)
                 //restart
-                createModel();
+                createModel(this.context);
         }
         else {
-            cube.x = cube.x + 10f / 90f;
-            cube.rz = cube.rz - 10f;
+            if (diffZ > 0) {
+                cube.x = cube.x + diffZ / 90f;
+                //cube.y = 1 * (float)Math.abs (Math.cos(cube.x) + Math.sin(cube.x));
+                cube.rz = cube.rz - diffZ;
+            }
         }
+        exp.update();
     }
 
     private void calculateFps() {
