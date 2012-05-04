@@ -16,10 +16,13 @@ public class Group extends Mesh {
     @Override
     public void draw(GL10 gl) {
         int size = children.size();
-        for( int i = 0; i < size; i++) {
-            gl.glPushMatrix();
-            children.get(i).draw(gl);
-            gl.glPopMatrix();
+        if (shouldDraw) {
+            gl.glTranslatef(x, y, z);
+            for( int i = 0; i < size; i++) {
+                gl.glPushMatrix();
+                children.get(i).draw(gl);
+                gl.glPopMatrix();
+            }
         }
     }
 

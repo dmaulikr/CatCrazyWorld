@@ -11,6 +11,7 @@ package ru.kiwaa.android;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -43,6 +44,8 @@ public class CrazyWorldActivity extends Activity implements SensorEventListener 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -73,14 +76,25 @@ public class CrazyWorldActivity extends Activity implements SensorEventListener 
                 sry = ry1;
                 srz = rz1;
                 first = false;
+
+//                Log.d("-----", "-------------------------------");
+//                Log.d("srx", String.valueOf(srx));
+//                Log.d("sry", String.valueOf(sry));
+//                //Log.d("srz", String.valueOf(srz));
+//                Log.d("-----", "-------------------------------");
             }
             float diffX = rx1 - srx;
             float diffY = ry1 - sry;
-            float diffZ = rz1 - srz;
+            //float diffZ = rz1 - srz;
+
+//            Log.d("-----", "-------------------------------");
+//            Log.d("diffX", String.valueOf(diffX));
+//            Log.d("diffY", String.valueOf(diffY));
+            //Log.d("diffZ", String.valueOf(diffZ));
             
             model.setXAngle(diffX);
-            model.setYAngle(diffY);
-            model.setZAngle(diffZ);
+            //model.setYAngle(diffZ);
+            model.setZAngle(diffY);
         }
     }
 

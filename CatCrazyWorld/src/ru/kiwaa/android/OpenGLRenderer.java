@@ -50,20 +50,18 @@ public class OpenGLRenderer implements Renderer {
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
                 GL10.GL_DEPTH_BUFFER_BIT);
 
-        
         model.updateScene();
-        GLU.gluPerspective(gl, 45.0f,
-                (float) width / (float) height,
-                0.1f, 100.0f);
+        //GLU.gluLookAt(gl, (float)(10 * Math.cos(model.rx)), (float)(10 * Math.sin(model.ry)), -10, model.getPlayerX(), model.getPlayerY(), 0, (float)(10 * Math.sin(model.ry)), 1, 0);
         // Replace the current matrix with the identity matrix
         gl.glLoadIdentity();
-        // Translates 4 units into the screen.
-        gl.glTranslatef(0, 0, -10);
-        // Draw our scene.
-        gl.glRotatef(model.rx, 1f, 0f, 0f);
-        gl.glRotatef(model.ry, 0f, 1f, 0f);
-        gl.glRotatef(model.rz, 0f, 0f, 1f);
-        //angle += 5;
+        GLU.gluLookAt(gl,
+                model.getPlayerX() + (float)(10 * Math.cos(model.rx / 100) * Math.sin(model.ry / 100)),
+                model.getPlayerY() + (float)(10 * Math.sin(model.rx / 100) * Math.sin(model.ry / 100)),
+                (float)(10 * Math.cos(model.ry / 100)),
+                model.getPlayerX(), model.getPlayerY(), 0,
+                0, 1, 0);
+        //angle  += 1;
+        //model.setZAngle(5);
         model.getCurrentScene().draw(gl);
     }
 
@@ -85,4 +83,5 @@ public class OpenGLRenderer implements Renderer {
         // Reset the modelview matrix
         gl.glLoadIdentity();// OpenGL docs.
     }
+
 }

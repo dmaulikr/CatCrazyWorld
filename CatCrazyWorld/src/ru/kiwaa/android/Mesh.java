@@ -53,6 +53,8 @@ public class Mesh {
     public float ry = 0;
     public float rz = 0;
     
+    public float scale = 1f;
+    
     //model params
     public boolean shouldDraw = true;
     public boolean isFixed = false;
@@ -98,6 +100,9 @@ public class Mesh {
             gl.glRotatef(rx, 1, 0, 0);
             gl.glRotatef(ry, 0, 1, 0);
             gl.glRotatef(rz, 0, 0, 1);
+           
+            if (scale != 1f)
+                gl.glScalef(scale, scale, scale);
 
             gl.glDrawElements(GL10.GL_TRIANGLES, numOfIndices,
                     GL10.GL_UNSIGNED_SHORT, indicesBuffer);
