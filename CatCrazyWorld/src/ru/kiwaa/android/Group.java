@@ -18,6 +18,7 @@ public class Group extends Mesh {
         int size = children.size();
         if (shouldDraw) {
             gl.glTranslatef(x, y, z);
+            gl.glScalef(scale, scale, scale);
             for( int i = 0; i < size; i++) {
                 gl.glPushMatrix();
                 children.get(i).draw(gl);

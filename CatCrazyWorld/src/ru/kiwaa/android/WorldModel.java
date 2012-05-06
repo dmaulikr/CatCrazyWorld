@@ -29,7 +29,7 @@ public class WorldModel {
     private int fps = 0;
 
     List<Point> fields = new ArrayList<Point>();
-    List<Point> rocks = new ArrayList<Point>();
+    List<BrokenRock> rocks = new ArrayList<BrokenRock>();
 
     //for camera
     public float rx = 0;
@@ -49,7 +49,10 @@ public class WorldModel {
     private boolean expTrigger = false;
     private  boolean gameEnded = false;
     
-    //Cube rock;
+    private int counter;
+    
+    private int lastX;
+    private int lastY;
 
     public void setCameraXAngle(float angle) {
         rx = angle;
@@ -78,6 +81,8 @@ public class WorldModel {
     //create model
     public void createModel(Context context) {
         gameEnded = false;
+        rocks.clear();
+        fields.clear();
 
         this.context = context;
 
@@ -93,9 +98,9 @@ public class WorldModel {
         Cube sand2 = new Cube(1,1,1);
         Cube ice = new Cube(1,1,1);
         Cube cloud = new Cube(1,1,1);
-        Cube brokenRock = new Cube(1,1,1);
-        Cube brokenRock1 = new Cube(1,1,1);
-        Cube brokenRock2 = new Cube(1,1,1);
+        //Cube brokenRock = new Cube(1,1,1);
+        //Cube brokenRock1 = new Cube(1,1,1);
+        //Cube brokenRock2 = new Cube(1,1,1);
         fish = new Fish(0.5f, 0.5f, 0.5f);
         Cube cat = new Cube(1,1,1);
                 
@@ -195,32 +200,34 @@ public class WorldModel {
         //Point cloudCoor = new Point(1, 0);
         //fields.add(cloudCoor);
 
-        brokenRock.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
+        BrokenRock rock1 = new BrokenRock(1,1,1,BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
         //brokenRock.setColor(0.2f, 0.2f, 0.2f, 1f);
-        brokenRock.x = 2f;
-        brokenRock.y = 0f;
-        brokenRock.rz = 0f;
-        scene.add(brokenRock);
-        Point rockCoor = new Point(2, 0);
-        fields.add(rockCoor);
+        rock1.x = 2f;
+        rock1.y = 0f;
+        rock1.rz = 0f;
+        scene.add(rock1);
+        fields.add(new Point(2, 0));
+        rocks.add(rock1);
 
-        brokenRock1.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
+        BrokenRock rock2 = new BrokenRock(1,1,1,BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
         //brokenRock.setColor(0.2f, 0.2f, 0.2f, 1f);
-        brokenRock1.x = 1f;
-        brokenRock1.y = 0f;
-        brokenRock1.z = 1f;
-        brokenRock1.rz = 0f;
-        scene.add(brokenRock1);
+        rock2.x = 1f;
+        rock2.y = 0f;
+        rock2.z = 1f;
+        rock2.rz = 0f;
+        scene.add(rock2);
         fields.add(new Point(1, 1));
+        rocks.add(rock2);
 
-        brokenRock2.loadBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
+        BrokenRock rock3 = new BrokenRock(1,1,1,BitmapFactory.decodeResource(context.getResources(), R.drawable.rock));
         //brokenRock.setColor(0.2f, 0.2f, 0.2f, 1f);
-        brokenRock2.x = 2f;
-        brokenRock2.y = 0f;
-        brokenRock2.z = -1f;
-        brokenRock2.rz = 0f;
-        scene.add(brokenRock2);
+        rock3.x = 2f;
+        rock3.y = 0f;
+        rock3.z = -1f;
+        rock3.rz = 0f;
+        scene.add(rock3);
         fields.add(new Point(2, -1));
+        rocks.add(rock3);
 
         fish.setColor(1f, 1f, 1f, 1f);
         fish.x = 0f;
@@ -268,15 +275,42 @@ public class WorldModel {
             //if (diffZ > 0) {
                 cube.z = cube.z + diffZ / 90f;
                 //cube.y = 1 * (float)Math.abs (Math.cos(cube.x) + Math.sin(cube.x));
-                cube.rx = cube.rx + diffZ;
+                cube.rx = cube.rx % 90 + diffZ;
 //            }
 //            if (diffX > 0) {
                 cube.x = cube.x - diffX / 90f;
                 //cube.y = 1 * (float)Math.abs (Math.cos(cube.x) + Math.sin(cube.x));
-                cube.rz = cube.rz + diffX;
+                cube.rz = cube.rz % 90 + diffX;
             //}
         }
-        
+            
+         if (lastX != (int)cube.x && lastY != (int)cube.z) {
+             lastX = (int)cube.x;
+             lastY = (int)cube.z;
+             counter = 0;
+         }
+         else {
+            counter++;
+            if (counter > 800)
+                for(BrokenRock rock : rocks) {
+                    if (rock.x <= cube.x + 0.5f && cube.x <= rock.x + 0.5f)
+                        if (rock.z <= cube.z + 0.5f && cube.z <= rock.z + 0.5f) {
+                            rock.broke();
+                            if (rock.broken == 4)
+                                for (Point p : fields)
+                                if (p.x == rock.x && rock.z == p.y) {
+                                    fields.remove(p);
+                                    break;
+                                }
+                        }
+                }
+         }
+
+         for(BrokenRock rock : rocks)
+            rock.update();
+
+            
+            
         if (Math.abs(cube.x) < 0.05f && Math.abs(cube.y - 1) < 0.05f){
             fish.shouldDraw = false;
             cube.scale = 1.2f;
